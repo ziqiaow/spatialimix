@@ -4,12 +4,17 @@
 \alias{summary_spatial}
 \title{Summarize the results after fitting IMIX Spatial Model}
 \usage{
-summary_spatial(input_spatialmodel, fdr = 0.1)
+summary_spatial(
+  input_spatialmodel,
+  threshold = 0.1,
+  imix_object_datatype1,
+  imix_object_datatype2
+)
 }
 \arguments{
 \item{input_spatialmodel}{This is the output 'IMIX_Input_Zscores' after using 'imix_spatial' function}
 
-\item{fdr}{The desired FDR threshold for the results, default is 0.1}
+\item{threshold}{The desired FDR threshold for the results, default is 0.1}
 }
 \value{
 
@@ -18,6 +23,5 @@ summary_spatial(input_spatialmodel, fdr = 0.1)
 This function maps the results after fitting the spatial IMIX model for the two data types to field effect genes
 }
 \examples{
-fit_imix_spatial=imix_spatial(input1=imix_object_datatype1$IMIX_Input_Zscores,input2=imix_object_datatype2$IMIX_Input_Zscores,model_type = "univariate",input_initial_model = test_uni)
-fit_imix_spatial_multi=imix_spatial(input1=imix_object_datatype1$IMIX_Input_Zscores,input2=imix_object_datatype2$IMIX_Input_Zscores,model_type = "multivariate",input_initial_model = test_multi)
+res=summary_spatial(fit_imix_spatial,imix_object_datatype1 = imix_object_datatype1,imix_object_datatype2 = imix_object_datatype2)
 }
