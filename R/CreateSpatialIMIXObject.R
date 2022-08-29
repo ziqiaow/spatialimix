@@ -14,7 +14,7 @@
 #'  \item{model_withouthg}{List of results fitting the spatial mixed model with the intercept and UC but without HG, these are used to construct the LRT test statistics and p-values}
 #'  \item{model_withoutintercept}{List of results fitting the spatial mixed model with HG and UC but without the intercept, these are used to construct the LRT test statistics and p-values}
 #'  \item{model_withoutuc}{List of results fitting the spatial mixed model with the intercept and HG but without UC, these are used to construct the LRT test statistics and p-values}
-#' @importFrom stats qnorm nlme
+#' @importFrom stats qnorm
 #' @export
 #' 
 #' @examples 
@@ -72,7 +72,7 @@ mod.list=list()
 #Build model
 colnames(spdata)[1]="variable"
 variable <- spdata[,1]
-mod=nlme::lme(fixed = variable ~ HG+UC, data = spdata, random = ~ 1 | dummy,correlation = corExp(1, form = ~ x + y), method = "ML") 
+mod=lme(fixed = variable ~ HG+UC, data = spdata, random = ~ 1 | dummy,correlation = corExp(1, form = ~ x + y), method = "ML") 
 
 #Create a data list
 spdata.input=list()
@@ -89,7 +89,7 @@ mod.list=lapply(seq_along(spdata.input),function(i) {
 
 #Build model without intercept
 variable <- spdata[,1]
-mod=nlme::lme(fixed = variable ~ -1+HG+UC, data = spdata, random = ~ 1 | dummy,correlation = corExp(1, form = ~ x + y), method = "ML") 
+mod=lme(fixed = variable ~ -1+HG+UC, data = spdata, random = ~ 1 | dummy,correlation = corExp(1, form = ~ x + y), method = "ML") 
 
 #Update models using lapply and store in a list
 mod.list.int=lapply(seq_along(spdata.input),function(i) {
@@ -98,7 +98,7 @@ mod.list.int=lapply(seq_along(spdata.input),function(i) {
 
 #Build model without HG
 variable <- spdata[,1]
-mod=nlme::lme(fixed = variable ~ UC, data = spdata, random = ~ 1 | dummy,correlation = corExp(1, form = ~ x + y), method = "ML") 
+mod=lme(fixed = variable ~ UC, data = spdata, random = ~ 1 | dummy,correlation = corExp(1, form = ~ x + y), method = "ML") 
 
 #Update models using lapply and store in a list
 mod.list.hg=lapply(seq_along(spdata.input),function(i) {
@@ -107,7 +107,7 @@ mod.list.hg=lapply(seq_along(spdata.input),function(i) {
 
 #Build model without UC
 variable <- spdata[,1]
-mod=nlme::lme(fixed = variable ~ HG, data = spdata, random = ~ 1 | dummy,correlation = corExp(1, form = ~ x + y), method = "ML") 
+mod=lme(fixed = variable ~ HG, data = spdata, random = ~ 1 | dummy,correlation = corExp(1, form = ~ x + y), method = "ML") 
 
 #Update models using lapply and store in a list
 mod.list.uc=lapply(seq_along(spdata.input),function(i) {
