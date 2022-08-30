@@ -52,16 +52,24 @@ library(spatialimix)
 
 # Load Spatial Data
 Load the example data. There are 34 geographical regions/samples in this example dataset. These include 27 LG labeled samples, 3 HG labeled samples and 4 UC samples. We include two data types and each data type has 100 genes. We assume they are the gene expression value log2ratio of the geographical regions compared to healthy controls and the methylation value log2ratio of the geographical regions compared to healthy controls. 
-```{r}
-data("location") # Load the location information of each geographical region. Here both data types share the same location information for the geographical samples.
+```{r tidy=FALSE}
+# Load the location information of each geographical region. 
+# Here both data types share the same location information for the geographical samples.
+data("location") 
 dim(location)
 head(location)
-data("label") # Load the disease grade of each samples.
+
+# Load the disease grade of each samples.
+data("label") 
 head(label)
-data("ratio1") # Load the gene expression value log2ratio of the geographical regions compared to healthy controls
+
+# Load the gene expression value log2ratio of the geographical regions
+data("ratio1") 
 dim(ratio1)
 ratio1[1:5,1:5]
-data("ratio2") # Load the methylation value log2ratio of the geographical regions compared to healthy controls
+
+## Load the methylation value log2ratio of the geographical regions
+data("ratio2")  
 dim(ratio2)
 ratio2[1:5,1:5]
 ```
@@ -83,29 +91,51 @@ We fit two models respectively on the two data types
 &nbsp;
 
 ## Example 1: Fit Univariate Spatial IMIX model
-```{r}
-test_uni=fit_uni(input1=imix_object_datatype1$IMIX_Input_Zscores,input2=imix_object_datatype2$IMIX_Input_Zscores)
-fit_imix_spatial=imix_spatial(input1=imix_object_datatype1$IMIX_Input_Zscores,input2=imix_object_datatype2$IMIX_Input_Zscores,model_type = "univariate",input_initial_model = test_uni)
-fit_imix_spatial$`posterior prob`[1:5,1:5] # There are in total 64 components for 3 disease grades and 2 data types after fitting the mixture model. This is the posterior probability after convergence using the EM algorithm.
+```{r tidy=FALSE}
+test_uni=fit_uni(input1=imix_object_datatype1$IMIX_Input_Zscores,
+                 input2=imix_object_datatype2$IMIX_Input_Zscores)
+fit_imix_spatial=imix_spatial(input1=imix_object_datatype1$IMIX_Input_Zscores,
+                              input2=imix_object_datatype2$IMIX_Input_Zscores,
+                              model_type = "univariate",input_initial_model = test_uni)
+
+# Let's look at the posterior probablity after fitting the model
+fit_imix_spatial$`posterior prob`[1:5,1:5] 
 ```
+
+There are in total 64 components for 3 disease grades and 2 data types after fitting the mixture model. This is the posterior probability after convergence using the EM algorithm.
 
 &nbsp;
 &nbsp;
 
 ## Example 2: Fit Multivariate Spatial IMIX model
-```{r}
-test_multi=fit_multi(input1=imix_object_datatype1$IMIX_Input_Zscores,input2=imix_object_datatype2$IMIX_Input_Zscores)
-fit_imix_spatial_multi=imix_spatial(input1=imix_object_datatype1$IMIX_Input_Zscores,input2=imix_object_datatype2$IMIX_Input_Zscores,model_type = "multivariate",input_initial_model = test_multi)
-fit_imix_spatial_multi$`posterior prob`[1:5,1:5] # There are in total 64 components for 3 disease grades and 2 data types after fitting the mixture model. This is the posterior probability after convergence using the EM algorithm.
+```{r tidy=FALSE}
+test_multi=fit_multi(input1=imix_object_datatype1$IMIX_Input_Zscores,
+                     input2=imix_object_datatype2$IMIX_Input_Zscores)
+fit_imix_spatial_multi=imix_spatial(input1=imix_object_datatype1$IMIX_Input_Zscores,
+                      input2=imix_object_datatype2$IMIX_Input_Zscores,
+                      model_type = "multivariate",input_initial_model = test_multi)
+
+# Let's look at the posterior probablity after fitting the model
+fit_imix_spatial_multi$`posterior prob`[1:5,1:5] 
 ```
+
+This result output is similar to the univariate spatial model.
+
 &nbsp;
 &nbsp;
 
 # Summarize and Interpret the Results
 We use this function to map the Spatial IMIX components to the field effect genes (genes in LG, HG, UC samples are all differentially expressed/methylated compared to healthy controls at a prespecified FDR threshold), genes in HG and UC labels that are differentially expressed in the same direction but LG not significant at the prespeficied FDR threshold, and genes only in UC label that are differentially expressed at the prespeficied FDR threshold. This example controls the FDR at 0.1.
-```{r}
-res = summary_spatial(fit_imix_spatial,threshold=0.1,imix_object_datatype1 = imix_object_datatype1,imix_object_datatype2 = imix_object_datatype2) # This is the summary of using the univariate spatial IMIX model
-res_multi = summary_spatial(fit_imix_spatial_multi,threshold=0.1,imix_object_datatype1 = imix_object_datatype1,imix_object_datatype2 = imix_object_datatype2) # This is the summary of using the multivariate spatial IMIX model
+```{r tidy=FALSE}
+# This is the summary of using the univariate spatial IMIX model
+res = summary_spatial(fit_imix_spatial,threshold=0.1,
+                      imix_object_datatype1 = imix_object_datatype1,
+                      imix_object_datatype2 = imix_object_datatype2) 
+
+# This is the summary of using the multivariate spatial IMIX model
+res_multi = summary_spatial(fit_imix_spatial_multi,threshold=0.1,
+                            imix_object_datatype1 = imix_object_datatype1,
+                            imix_object_datatype2 = imix_object_datatype2) 
 
 # Look at the results at FDR controlled at 0.1
 head(res$results)
@@ -126,4 +156,3 @@ The result output for the univariate spatial IMIX model shows that there are 17 
 sessionInfo()
 ```
 
-# References
