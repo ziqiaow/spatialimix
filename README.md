@@ -7,9 +7,9 @@ Install the spatialimix package via github
 ```
 if(!requireNamespace("devtools", quietly = TRUE))
     install.packages("devtools")
-devtools::install_github("ziqiaow/spatialimix",build_vignettes=T) 
+devtools::install_github("ziqiaow/spatialimix", build_vignettes = TRUE) 
 ```
-To save time, download the package without building the vignettes by setting 'build_vignettes=F'.
+To save time, download the package without building the vignettes by setting 'build_vignettes = FALSE'.
 
 ### To get started with the package
 Load the package and open the package vignette:
