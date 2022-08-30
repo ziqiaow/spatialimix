@@ -17,7 +17,7 @@ Load the package and open the package vignette:
 library("spatialimix")
 vignette("spatialimix")
 ```
-There will be examples for all the functions in spatialimix package in [vignette](vignettes/spatialimix.html). If you have any question, use help().
+There will be examples for all the functions in spatialimix package in [vignette](vignettes/spatialimix.pdf). If you have any question, use help().
 
 **Reference**
 
