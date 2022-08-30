@@ -1,0 +1,129 @@
+---
+title: R Package 'spatialimix' Pipeline - A Mixture Model Approach to Spatially Correlated
+  Multi-Omics Data Integration
+author: "Ziqiao Wang"
+date: "2022/08/29"
+output:
+  html_document:
+    number_sections: yes
+    theme: cerulean
+    toc: yes
+    toc_depth: 2
+  pdf_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+  rmarkdown::html_vignette: default
+nocite: |
+  @*
+vignette: |
+  %\VignetteIndexEntry{Spatialimix Pipeline} %\VignetteEngine{knitr::rmarkdown} \usepackage[utf8]{inputenc}
+---
+
+
+&nbsp;
+&nbsp;
+
+# Introduction
+
+&nbsp;
+&nbsp;
+
+'spatialimix' is an R package for characterizing the spatially correlated samples in high-dimensional omics datasets. This package can find biologically meaningful genes through the integration of two omic data types to investigate the associations between genes and disease subtypes. The input includes the location of each geographical region/sample, the disease subtype of each sample, and the log2ratio values of genes in the samples compared to healthy controls for each data type. spatialimix is flexible and can be applied to different data types including but not limited to gene expression data, DNA methylation data (after summarized at gene-level for integration), and copy number variation data. It considers the spatial correlation between the geographical regions and the inter-data-type correlations in data integration. Functions feature coefficient estimation using spatial linear mixed model and parameter estimation of the mixture model for the summary statistics via EM algorithm while controlling for the across-data-type false discovery rate (FDR) at a user specified level. 
+
+We introduce this pipeline using a data example here. The data is based on geographically annotated mucosal samples from a surgically removed bladder specimen from one bladder cancer patient. Each spatial sample was evaluated microscopically and classified by a pathologist into one of three categories: normal urothelium (NU), in situ precursor lesions, or urothelial carcinoma (UC). The in situ precursor lesions were further dichotomized into low-grade intraurothelial neoplasia (LG) and high-grade intraurothelial neoplasia (HG). Furthermore, each spatial sample was measured for two whole genome-wide omics data platforms, gene expression and methylation. We aim to explore the cancer-initiating events that occur in normal-appearing tissue samples that carries on to carcinoma samples in a single tissue section, i.e., discover differentially expressed and methylated genes in the spatially resolved high-dimensional datasets with respect to the sample subtypes across the tissue, and furthermore the fundamental biological mechanisms. There are three possible outcomes that are biologically meaningful here for both data types: field effect genes (genes in LG, HG, UC samples that are all differentially expressed and methylated compared to healthy controls), HG&UC genes (genes in HG and UC labels that are differentially expressed and methylated in the same direction but LG not significant), and UC genes (genes only in UC label that are differentially expressed and methylated).
+
+This document presents a pipeline of using the spatial IMIX model to integrate two data types of spatially-resolved omics data. The task addressed in this package is to identify significant genes associated with the disease subtypes with stringent FDR control. See help(package="spatialimix") for further details and references provided by citation("spatialimix").
+
+
+&nbsp;
+&nbsp;
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(spatialimix)
+```
+
+# Load Spatial Data
+Load the example data. There are 34 geographical regions/samples in this example dataset. These include 27 LG labeled samples, 3 HG labeled samples and 4 UC samples. We include two data types and each data type has 100 genes. We assume they are the gene expression value log2ratio of the geographical regions compared to healthy controls and the methylation value log2ratio of the geographical regions compared to healthy controls. 
+```{r}
+data("location") # Load the location information of each geographical region. Here both data types share the same location information for the geographical samples.
+dim(location)
+head(location)
+data("label") # Load the disease grade of each samples.
+head(label)
+data("ratio1") # Load the gene expression value log2ratio of the geographical regions compared to healthy controls
+dim(ratio1)
+ratio1[1:5,1:5]
+data("ratio2") # Load the methylation value log2ratio of the geographical regions compared to healthy controls
+dim(ratio2)
+ratio2[1:5,1:5]
+```
+
+# Create Spatial IMIX Object Input
+This step fits spatial linear models for each data type and outputs the fixed effect coefficients and LRT p-values for all the genes. It also produces the inverse normal transformed z scores that is ready for the mixture model data integration step.
+```{r}
+imix_object_datatype1 <- CreateSpatialIMIXObject(ratio=ratio1,label=label,location=location)
+imix_object_datatype2 <- CreateSpatialIMIXObject(ratio=ratio2,label=label,location=location)
+```
+
+&nbsp;
+&nbsp;
+
+# Integrative genomics test for two omics data types
+We fit two models respectively on the two data types
+
+&nbsp;
+&nbsp;
+
+## Example 1: Fit Univariate Spatial IMIX model
+```{r}
+test_uni=fit_uni(input1=imix_object_datatype1$IMIX_Input_Zscores,input2=imix_object_datatype2$IMIX_Input_Zscores)
+fit_imix_spatial=imix_spatial(input1=imix_object_datatype1$IMIX_Input_Zscores,input2=imix_object_datatype2$IMIX_Input_Zscores,model_type = "univariate",input_initial_model = test_uni)
+fit_imix_spatial$`posterior prob`[1:5,1:5] # There are in total 64 components for 3 disease grades and 2 data types after fitting the mixture model. This is the posterior probability after convergence using the EM algorithm.
+```
+
+&nbsp;
+&nbsp;
+
+## Example 2: Fit Multivariate Spatial IMIX model
+```{r}
+test_multi=fit_multi(input1=imix_object_datatype1$IMIX_Input_Zscores,input2=imix_object_datatype2$IMIX_Input_Zscores)
+fit_imix_spatial_multi=imix_spatial(input1=imix_object_datatype1$IMIX_Input_Zscores,input2=imix_object_datatype2$IMIX_Input_Zscores,model_type = "multivariate",input_initial_model = test_multi)
+fit_imix_spatial_multi$`posterior prob`[1:5,1:5] # There are in total 64 components for 3 disease grades and 2 data types after fitting the mixture model. This is the posterior probability after convergence using the EM algorithm.
+```
+&nbsp;
+&nbsp;
+
+# Summarize and Interpret the Results
+We use this function to map the Spatial IMIX components to the field effect genes (genes in LG, HG, UC samples are all differentially expressed/methylated compared to healthy controls at a prespecified FDR threshold), genes in HG and UC labels that are differentially expressed in the same direction but LG not significant at the prespeficied FDR threshold, and genes only in UC label that are differentially expressed at the prespeficied FDR threshold. This example controls the FDR at 0.1.
+```{r}
+res = summary_spatial(fit_imix_spatial,threshold=0.1,imix_object_datatype1 = imix_object_datatype1,imix_object_datatype2 = imix_object_datatype2) # This is the summary of using the univariate spatial IMIX model
+res_multi = summary_spatial(fit_imix_spatial_multi,threshold=0.1,imix_object_datatype1 = imix_object_datatype1,imix_object_datatype2 = imix_object_datatype2) # This is the summary of using the multivariate spatial IMIX model
+
+# Look at the results at FDR controlled at 0.1
+head(res$results)
+table(res$results$label)
+
+head(res$results)
+table(res_multi$results$label)
+
+```
+The result output for the univariate spatial IMIX model shows that there are 17 field-effect genes in both gene expression and methylation data out of 100 at FDR $\alpha=0.1$ and for the multivariate spatial IMIX model there are 2 field effect genes in both gene expression and methylation data detected at FDR $\alpha=0.1$.
+
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+```{r}
+sessionInfo()
+```
+
+# References

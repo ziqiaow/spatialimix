@@ -85,7 +85,7 @@ summary_spatial=function(input_spatialmodel, #The saved object after fitting "im
   names(int_imix_group)=names(tmp1)
   results=data.frame(int_imix_group)
   results$label=0
-  results$label[which(results$int_imix_group==1)]="Not significant"
+  results$label[which(results$int_imix_group==1)]="Other"
   results$label[which(results$int_imix_group==2)]="Field effect genes"
   results$label[which(results$int_imix_group==3)]="HG&UC genes"
   results$label[which(results$int_imix_group==4)]="UC only genes"
